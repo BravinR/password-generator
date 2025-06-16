@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Password Generator</title>
+    
+    <!-- Favicon - SVG for modern browsers -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23667eea'/><path d='M50 20c-8.3 0-15 6.7-15 15v10h-5c-2.8 0-5 2.2-5 5v25c0 2.8 2.2 5 5 5h40c2.8 0 5-2.2 5-5V50c0-2.8-2.2-5-5-5h-5V35c0-8.3-6.7-15-15-15zm0 5c5.5 0 10 4.5 10 10v10H40V35c0-5.5 4.5-10 10-10zm-15 25h30v20H35V55zm15 5c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5z' fill='white'/></svg>"/>
+    
+    <!-- Fallback for older browsers -->
+    <link rel="alternate icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKBSURBVFhH7ZdNaxNBFIafxoJQG1st/kCtH61YwYUuXLhw48KdCxcuXLhx48aFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFCxcuXLhw4cKFC="/>
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23667eea'/><path d='M50 20c-8.3 0-15 6.7-15 15v10h-5c-2.8 0-5 2.2-5 5v25c0 2.8 2.2 5 5 5h40c2.8 0 5-2.2 5-5V50c0-2.8-2.2-5-5-5h-5V35c0-8.3-6.7-15-15-15zm0 5c5.5 0 10 4.5 10 10v10H40V35c0-5.5 4.5-10 10-10zm-15 25h30v20H35V55zm15 5c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5z' fill='white'/></svg>"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .password-result {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            position: relative;
+        }
+
+        .password-text {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            word-break: break-all;
+            margin-bottom: 10px;
+        }
+
+        .password-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .copy-btn, .regenerate-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .regenerate-btn {
+            background: #667eea;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .regenerate-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .copy-btn:active, .regenerate-btn:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+        .info-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0.3; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+                margin: 10px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Password Generator</h1>
+        
+        {% if success_message %}
+        <div class="alert alert-success">
+            {{ success_message }}
+        </div>
+        {% endif %}
+        
+        {% if error_message %}
+        <div class="alert alert-error">
+            ❌ {{ error_message }}
+        </div>
+        {% endif %}
+
+        {% if generated_password %}
+        <div class="password-result">
+            {% if auto_generated %}
+            <div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
+                🎲 Here's a sample password with default settings:
+            </div>
+            {% endif %}
+            <div class="password-text" id="generatedPassword">{{ generated_password }}</div>
+            <div class="password-actions">
+                <button class="copy-btn" onclick="copyPassword()">📋 Copy Password</button>
+                <button class="regenerate-btn" onclick="regeneratePassword()">🔄 Regenerate</button>
+            </div>
+            {% if auto_generated %}
+            <div style="font-size: 0.85em; color: #888; margin-top: 8px;">
+                💡 Adjust the settings below to customize your password
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <form method="post" action="/generate">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="length">Number of Groups:</label>
+                    <input type="number" id="length" name="length" 
+                           value="{{ form_data.length }}" min="1" max="10" required>
+                    <div class="info-text">How many character groups to create</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="set_length">Characters per Group:</label>
+                    <input type="number" id="set_length" name="set_length" 
+                           value="{{ form_data.set_length }}" min="3" max="20" required>
+                    <div class="info-text">Length of each group</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="numbers">Numbers to Include:</label>
+                    <input type="number" id="numbers" name="numbers" 
+                           value="{{ form_data.numbers }}" min="0" required>
+                    <div class="info-text">Random digits to add</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="uppercase">Uppercase Letters:</label>
+                    <input type="number" id="uppercase" name="uppercase" 
+                           value="{{ form_data.uppercase }}" min="0" required>
+                    <div class="info-text">Letters to capitalize</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="separator">Group Separator:</label>
+                <input type="text" id="separator" name="separator" 
+                       value="{{ form_data.separator }}" maxlength="3" required>
+                <div class="info-text">Character(s) to separate groups (max 3 chars)</div>
+            </div>
+
+            <button type="submit" class="generate-btn">
+                🎲 Generate Secure Password
+            </button>
+        </form>
+
+        <div style="margin-top: 30px; text-align: center; color: #666; font-size: 0.9em;">
+            <p>🔒 All passwords are generated server-side using cryptographically secure random numbers</p>
+        </div>
+    </div>
+
+    <script>
+        function regeneratePassword() {
+            const button = document.querySelector('.regenerate-btn');
+            const originalText = button.textContent;
+            
+            // Show loading state
+            button.textContent = '🔄 Generating...';
+            button.disabled = true;
+            button.style.opacity = '0.7';
+            
+            // Get current form values
+            const formData = new FormData();
+            formData.append('length', document.getElementById('length').value);
+            formData.append('set_length', document.getElementById('set_length').value);
+            formData.append('numbers', document.getElementById('numbers').value);
+            formData.append('uppercase', document.getElementById('uppercase').value);
+            formData.append('separator', document.getElementById('separator').value);
+            
+            // Make API call to generate new password
+            fetch('/api/generate?' + new URLSearchParams({
+                length: document.getElementById('length').value,
+                set_length: document.getElementById('set_length').value,
+                numbers: document.getElementById('numbers').value,
+                uppercase: document.getElementById('uppercase').value,
+                separator: document.getElementById('separator').value
+            }))
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to generate password');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Update password display
+                document.getElementById('generatedPassword').textContent = data.password;
+                
+                // Show success animation
+                const passwordText = document.getElementById('generatedPassword');
+                passwordText.style.animation = 'fadeIn 0.5s ease-in';
+                
+                // Reset button
+                button.textContent = originalText;
+                button.disabled = false;
+                button.style.opacity = '1';
+                
+                // Brief success indication
+                button.textContent = '✅ Generated!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 1500);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Show error state
+                button.textContent = '❌ Error';
+                button.style.background = '#dc3545';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#667eea';
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                }, 2000);
+            });
+        }
+
+        function copyPassword() {
+            const passwordText = document.getElementById('generatedPassword').textContent;
+            navigator.clipboard.writeText(passwordText).then(function() {
+                const button = document.querySelector('.copy-btn');
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                button.style.background = '#28a745';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#28a745';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = passwordText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const button = document.querySelector('.copy-btn');
+                button.textContent = '✅ Copied!';
+                setTimeout(function() {
+                    button.textContent = '📋 Copy Password';
+                }, 2000);
+            });
+        }
+
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const length = parseInt(document.getElementById('length').value);
+            const setLength = parseInt(document.getElementById('set_length').value);
+            const numbers = parseInt(document.getElementById('numbers').value);
+            const uppercase = parseInt(document.getElementById('uppercase').value);
+            
+            const totalChars = length * setLength;
+            const requiredReplacements = numbers + uppercase;
+            
+            if (requiredReplacements > totalChars) {
+                e.preventDefault();
+                alert(`Error: Numbers (${numbers}) + Uppercase (${uppercase}) = ${requiredReplacements} cannot exceed total characters (${totalChars})`);
+            }
+        });
+    </script>
+</body>
+</html>
