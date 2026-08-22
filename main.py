@@ -55,6 +55,16 @@ templates = Jinja2Templates(directory="templates")
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+def get_client_ip(request: Request) -> Optional[str]:
+    """Real client IP, preferring X-Forwarded-For (set by Dokku's nginx)
+    over request.client.host, which is just the docker bridge peer when
+    the app sits behind a reverse proxy."""
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else None
+
+
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     """Log every request as structured JSON: method, path, status, timing.
@@ -80,7 +90,7 @@ async def log_requests(request: Request, call_next):
             "path": request.url.path,
             "status_code": response.status_code,
             "duration_ms": duration_ms,
-            "client_ip": request.client.host if request.client else None,
+            "client_ip": get_client_ip(request),
         },
     )
     return response
