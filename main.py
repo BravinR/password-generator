@@ -4,8 +4,47 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 import string
 import secrets
+import logging
+import sys
+import time
+import json
+import uuid
 from textwrap import wrap
 from typing import Optional
+
+# --- Logging setup -----------------------------------------------------
+# Structured (JSON) logs to stdout so Fluent Bit (or any container log
+# collector) can tail them without needing a custom text parser.
+# NOTE: never log generated passwords themselves — only metadata.
+
+
+class JSONFormatter(logging.Formatter):
+    EXTRA_FIELDS = (
+        "event", "request_id", "method", "path", "status_code", "duration_ms",
+        "client_ip",
+    )
+
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {
+            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S%z"),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        for field in self.EXTRA_FIELDS:
+            if hasattr(record, field):
+                payload[field] = getattr(record, field)
+        if record.exc_info:
+            payload["exception"] = self.formatException(record.exc_info)
+        return json.dumps(payload)
+
+
+logger = logging.getLogger("password_generator")
+logger.setLevel(logging.INFO)
+_handler = logging.StreamHandler(sys.stdout)
+_handler.setFormatter(JSONFormatter())
+logger.addHandler(_handler)
+logger.propagate = False
 
 app = FastAPI(title="Password Generator", description="Server-side rendered password generator")
 
@@ -14,6 +53,37 @@ templates = Jinja2Templates(directory="templates")
 
 # Optional: serve static files (CSS, JS, etc.)
 # app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log every request as structured JSON: method, path, status, timing.
+
+    Generates a per-request UUID (request.state.request_id) so this line
+    can be correlated with any log lines emitted by the route handler.
+    """
+    request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
+
+    start = time.time()
+    response = await call_next(request)
+    duration_ms = round((time.time() - start) * 1000, 2)
+
+    response.headers["X-Request-ID"] = request_id
+
+    logger.info(
+        "request handled",
+        extra={
+            "event": "http_request",
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+            "status_code": response.status_code,
+            "duration_ms": duration_ms,
+            "client_ip": request.client.host if request.client else None,
+        },
+    )
+    return response
 
 
 def charset(length: int = 6) -> str:
@@ -132,6 +202,15 @@ async def generate_password(
             separator=separator
         )
         
+        logger.info(
+            "password generated",
+            extra={
+                "event": "password_generated",
+                "path": "/generate",
+                "request_id": request.state.request_id,
+            },
+        )
+
         return templates.TemplateResponse("index.html", {
             "request": request,
             "generated_password": password,
@@ -144,8 +223,17 @@ async def generate_password(
             },
             "success_message": "Password generated successfully!"
         })
-        
+
     except ValueError as e:
+        logger.warning(
+            "password generation failed: %s",
+            e,
+            extra={
+                "event": "password_generation_failed",
+                "path": "/generate",
+                "request_id": request.state.request_id,
+            },
+        )
         return templates.TemplateResponse("index.html", {
             "request": request,
             "generated_password": None,
@@ -162,6 +250,7 @@ async def generate_password(
 
 @app.get("/api/generate")
 async def api_generate_password(
+    request: Request,
     length: int = 3,
     set_length: int = 6,
     numbers: int = 1,
@@ -178,6 +267,15 @@ async def api_generate_password(
             separator=separator
         )
         
+        logger.info(
+            "password generated",
+            extra={
+                "event": "password_generated",
+                "path": "/api/generate",
+                "request_id": request.state.request_id,
+            },
+        )
+
         return {
             "password": password,
             "parameters": {
@@ -188,8 +286,17 @@ async def api_generate_password(
                 "separator": separator
             }
         }
-        
+
     except ValueError as e:
+        logger.warning(
+            "password generation failed: %s",
+            e,
+            extra={
+                "event": "password_generation_failed",
+                "path": "/api/generate",
+                "request_id": request.state.request_id,
+            },
+        )
         raise HTTPException(status_code=400, detail=str(e))
 
 
